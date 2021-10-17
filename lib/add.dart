@@ -11,14 +11,21 @@ class Add extends StatefulWidget {
 /// This is the private State class that goes with MyStatefulWidget.
 class _AddWidgetState extends State<Add> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
+  String dropdownValue = "Tipo de Tema";
+  bool? checkrequestvalue = true;
+  bool? checkautovalue = true;
   @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: ListView(
+        padding: EdgeInsets.symmetric(horizontal: 25),
+        //crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          Container(
+              margin: EdgeInsets.symmetric(vertical: 15),
+              child: Text('Crear Tema',
+                  style: TextStyle(fontSize: 30), textAlign: TextAlign.center)),
           Container(
               margin: EdgeInsets.all(10),
               padding: EdgeInsets.all(5),
@@ -56,16 +63,71 @@ class _AddWidgetState extends State<Add> {
                     Radius.circular(10.0)), // set rounded corner radius
               ),
               child: DropdownButton<String>(
+                hint: new Text("Seleccione el tipo del tema"),
+                isExpanded: true,
+                value: dropdownValue,
                 style: TextStyle(fontSize: 20, color: Colors.black45),
-                items: <String>['Siembra', 'Cosecha', 'Poscosecha']
-                    .map((String value) {
+                items: <String>[
+                  'Tipo de Tema',
+                  'Siembra',
+                  'Cosecha',
+                  'Poscosecha'
+                ].map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
+                      value: value, child: Text(value));
                 }).toList(),
-                onChanged: (_) {},
+                onChanged: (newValue) {
+                  setState(() {
+                    dropdownValue = newValue.toString();
+                  });
+                },
               )),
+          Container(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 2,
+                  ), //SizedBox
+                  Text(
+                    'Permitir Solicitudes              ',
+                    style: TextStyle(fontSize: 17.0),
+                  ), //Text
+                  SizedBox(width: 2), //SizedBox
+                  /** Checkbox Widget **/
+                  Checkbox(
+                    value: checkrequestvalue,
+                    onChanged: (newValue) {
+                      setState(() {
+                        checkrequestvalue = newValue;
+                      });
+                    },
+                  ), //Checkbox
+                ], //<Widget>[]
+              )), //Row
+          Container(
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 2,
+                  ), //SizedBox
+                  Text(
+                    'Comprobación automatica ',
+                    style: TextStyle(fontSize: 17.0),
+                  ), //Text
+                  SizedBox(width: 2), //SizedBox
+                  /** Checkbox Widget **/
+                  Checkbox(
+                    value: checkautovalue,
+                    onChanged: (newValue) {
+                      setState(() {
+                        checkautovalue = newValue;
+                      });
+                    },
+                  ), //Checkbox
+                ], //<Widget>[]
+              )), //Row
           Container(
               margin: EdgeInsets.all(10),
               padding: EdgeInsets.all(5),
@@ -78,6 +140,8 @@ class _AddWidgetState extends State<Add> {
                     Radius.circular(10.0)), // set rounded corner radius
               ),
               child: TextFormField(
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
                 style: TextStyle(fontSize: 20),
                 decoration: const InputDecoration(
                   hintText: 'Contenido',
