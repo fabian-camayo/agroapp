@@ -1,10 +1,22 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/gestures.dart';
 import 'nav.dart';
 import 'signin.dart';
 
-class SignUp extends StatelessWidget {
-  const SignUp({Key? key}) : super(key: key);
+class SignUp extends StatefulWidget {
+  @override
+  _SignUp createState() => _SignUp();
+}
+
+class _SignUp extends State<SignUp> {
+  final formkey = GlobalKey<FormState>();
+  final _auth = FirebaseAuth.instance;
+  String email = '';
+  String password = '';
+  bool isloading = false;
 
   Widget renderEmailInput() {
     return Container(
@@ -18,12 +30,18 @@ class SignUp extends StatelessWidget {
         borderRadius: BorderRadius.all(
             Radius.circular(10.0)), // set rounded corner radius
       ),
-      child: TextField(
+      child: TextFormField(
+        keyboardType: TextInputType.emailAddress,
         style: TextStyle(fontSize: 20),
         decoration: InputDecoration(
           hintText: 'Correo Electrónico',
           border: InputBorder.none,
         ),
+        onChanged: (value) {
+          email = value.toString().trim();
+        },
+        validator: (value) =>
+            (value!.isEmpty) ? 'Por favor ingrese su correo electrónico' : null,
       ),
     );
   }
@@ -40,8 +58,16 @@ class SignUp extends StatelessWidget {
         borderRadius: BorderRadius.all(
             Radius.circular(10.0)), // set rounded corner radius
       ),
-      child: TextField(
+      child: TextFormField(
         obscureText: true,
+        validator: (value) {
+          if (value!.isEmpty) {
+            return "Por favor, ingrese su contraseña";
+          }
+        },
+        onChanged: (value) {
+          password = value;
+        },
         style: TextStyle(fontSize: 20),
         decoration: InputDecoration(
           hintText: 'Contraseña',
@@ -58,11 +84,51 @@ class SignUp extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(5, 20, 5, 5),
         child: ElevatedButton(
           child: Text('¡Empezar!', style: TextStyle(fontSize: 22)),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const NavBar()),
-            );
+          onPressed: () async {
+            if (formkey.currentState!.validate()) {
+              setState(() {
+                isloading = true;
+              });
+              try {
+                await _auth.createUserWithEmailAndPassword(
+                    email: email, password: password);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.blueGrey,
+                    content: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                          'Regístrado correctamente. Puede iniciar sesión ahora'),
+                    ),
+                    duration: Duration(seconds: 5),
+                  ),
+                );
+                Navigator.of(context).pop();
+
+                setState(() {
+                  isloading = false;
+                });
+              } on FirebaseAuthException catch (e) {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text(' ¡Ops! Registro fallido'),
+                    content: Text('${e.message}'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                        },
+                        child: Text('Ok'),
+                      )
+                    ],
+                  ),
+                );
+              }
+              setState(() {
+                isloading = false;
+              });
+            }
           },
           style: ElevatedButton.styleFrom(primary: const Color(0xFF84cc16)),
         ),
@@ -90,7 +156,44 @@ class SignUp extends StatelessWidget {
               Radius.circular(10.0)), // set rounded corner radius
         ),
         child: ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: () async {
+              setState(() {
+                isloading = true;
+              });
+              try {
+                signInWithGoogle();
+
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (contex) => NavBar(),
+                  ),
+                );
+
+                setState(() {
+                  isloading = false;
+                });
+              } on FirebaseAuthException catch (e) {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text("¡Ops! Error de inicio de sesion"),
+                    content: Text('${e.message}'),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                        },
+                        child: Text('Ok'),
+                      )
+                    ],
+                  ),
+                );
+                print(e);
+              }
+              setState(() {
+                isloading = false;
+              });
+            },
             icon: ImageIcon(AssetImage('assets/images/logo_google.png')),
             label: Text(
               'Regístrate con Google',
@@ -123,7 +226,7 @@ class SignUp extends StatelessWidget {
                 recognizer: TapGestureRecognizer()
                   ..onTap = () => Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const SignIn()),
+                        MaterialPageRoute(builder: (context) => SignIn()),
                       )),
           ]),
         ));
@@ -132,24 +235,32 @@ class SignUp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 30),
-        decoration: BoxDecoration(color: Colors.white),
-        child: ListView(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Image.asset('assets/images/logo_agroapp.png',
-                  width: 540, height: 240),
-            ),
-            renderEmailInput(),
-            renderPasswordInput(),
-            renderSignUpButton(context),
-            renderSignUpGoogleButton(),
-            renderSignInLink(context)
-          ],
-        ),
-      ),
+      body: isloading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Form(
+              key: formkey,
+              child: AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: SystemUiOverlayStyle.light,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    decoration: BoxDecoration(color: Colors.white),
+                    child: ListView(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Image.asset('assets/images/logo_agroapp.png',
+                              width: 540, height: 240),
+                        ),
+                        renderEmailInput(),
+                        renderPasswordInput(),
+                        renderSignUpButton(context),
+                        renderSignUpGoogleButton(),
+                        renderSignInLink(context)
+                      ],
+                    ),
+                  ))),
     );
   }
 }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/intl.dart';
 import 'nav.dart';
 
 class Add extends StatefulWidget {
@@ -10,10 +13,37 @@ class Add extends StatefulWidget {
 
 /// This is the private State class that goes with MyStatefulWidget.
 class _AddWidgetState extends State<Add> {
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String? name;
   String dropdownValue = "Tipo de Tema";
   bool? checkrequestvalue = true;
   bool? checkautovalue = true;
+  String? content;
+  getCurrentDate() {
+    return DateFormat('yyyy-MM-dd').format(DateTime.now());
+  }
+
+  Future<void> addTheme() async {
+    await firestore
+        .collection("themes")
+        .add({
+          'reference': '',
+          'name': name,
+          'type': dropdownValue,
+          'request': checkrequestvalue,
+          'checkauto': checkautovalue,
+          'content': content,
+          'likes': [],
+          'date_create': getCurrentDate(),
+          'status': 'published'
+        })
+        .then((documentReference) {})
+        .catchError((e) {
+          print(e);
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -43,11 +73,13 @@ class _AddWidgetState extends State<Add> {
                   hintText: 'Nombre del Tema',
                   border: InputBorder.none,
                 ),
-                validator: (String? value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese un nombre';
+                onChanged: (value) {
+                  name = value;
+                },
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Por favor ingrese un nombre";
                   }
-                  return null;
                 },
               )),
           Container(
@@ -90,7 +122,7 @@ class _AddWidgetState extends State<Add> {
                     width: 2,
                   ), //SizedBox
                   Text(
-                    'Permitir Solicitudes              ',
+                    'Permitir Edición              ',
                     style: TextStyle(fontSize: 17.0),
                   ), //Text
                   SizedBox(width: 2), //SizedBox
@@ -147,11 +179,13 @@ class _AddWidgetState extends State<Add> {
                   hintText: 'Contenido',
                   border: InputBorder.none,
                 ),
-                validator: (String? value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese el contenido';
+                onChanged: (value) {
+                  content = value;
+                },
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "Por favor ingrese el contenido";
                   }
-                  return null;
                 },
               )),
           Container(
@@ -166,6 +200,30 @@ class _AddWidgetState extends State<Add> {
                   // the form is invalid.
                   if (_formKey.currentState!.validate()) {
                     // Process data.
+                    try {
+                      addTheme();
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (contex) => NavBar(),
+                        ),
+                      );
+                    } catch (e) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text("¡Ops! Error al publicar"),
+                          content: Text('${e}'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(ctx).pop();
+                              },
+                              child: Text('Ok'),
+                            )
+                          ],
+                        ),
+                      );
+                    }
                   }
                 },
                 child: Text('Publicar', style: TextStyle(fontSize: 22)),
