@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'nav.dart';
 import 'signin.dart';
 
-class ForgotPassword extends StatelessWidget {
-  const ForgotPassword({Key? key}) : super(key: key);
+class ForgotPassword extends StatefulWidget {
+  @override
+  _ForgotPassword createState() => _ForgotPassword();
+}
 
+class _ForgotPassword extends State<ForgotPassword> {
+  final auth = FirebaseAuth.instance;
+  String email = '';
   Widget renderLabelInstructions() {
     return Container(
         padding: EdgeInsets.only(bottom: 10),
@@ -35,7 +41,16 @@ class ForgotPassword extends StatelessWidget {
         borderRadius: BorderRadius.all(
             Radius.circular(10.0)), // set rounded corner radius
       ),
-      child: TextField(
+      child: TextFormField(
+        keyboardType: TextInputType.emailAddress,
+        onChanged: (value) {
+          email = value;
+        },
+        validator: (value) {
+          if (value!.isEmpty) {
+            return "Por favor ingrese su correo electrónico";
+          }
+        },
         style: TextStyle(fontSize: 20),
         decoration: InputDecoration(
           hintText: 'Correo Electrónico',
@@ -53,10 +68,12 @@ class ForgotPassword extends StatelessWidget {
         child: ElevatedButton(
           child: Text('Continuar', style: TextStyle(fontSize: 22)),
           onPressed: () {
-            Navigator.push(
+            auth.sendPasswordResetEmail(email: email);
+            Navigator.of(context).pop();
+            /**Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => SignIn()),
-            );
+            );**/
           },
           style: ElevatedButton.styleFrom(primary: const Color(0xFF84cc16)),
         ),

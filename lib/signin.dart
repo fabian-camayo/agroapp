@@ -239,8 +239,7 @@ class _SignIn extends State<SignIn> {
               recognizer: TapGestureRecognizer()
                 ..onTap = () => Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const ForgotPassword()),
+                      MaterialPageRoute(builder: (context) => ForgotPassword()),
                     )),
         ));
   }
