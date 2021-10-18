@@ -184,7 +184,6 @@ class _HomeWidgetState extends State<Home> {
                                                       .doc(themeID)
                                                       .update({
                                                         'content': content,
-                                                        'likes': 0,
                                                         'date_update':
                                                             getCurrentDate(),
                                                       })
