@@ -3,6 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/intl.dart';
 import 'nav.dart';
+import 'package:uuid/uuid.dart';
+import 'upload_image.dart';
+import 'global.Dart' as global;
 
 class Add extends StatefulWidget {
   const Add({Key? key}) : super(key: key);
@@ -12,9 +15,12 @@ class Add extends StatefulWidget {
 }
 
 /// This is the private State class that goes with MyStatefulWidget.
+var uuid = Uuid();
+
 class _AddWidgetState extends State<Add> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String id = uuid.v4();
   String? name;
   String dropdownValue = "Tipo de Tema";
   bool? checkrequestvalue = true;
@@ -28,7 +34,8 @@ class _AddWidgetState extends State<Add> {
     await firestore
         .collection("themes")
         .add({
-          'reference': '',
+          'id': id,
+          'url_img': global.img_url_temp,
           'name': name,
           'type': dropdownValue,
           'request': checkrequestvalue,
@@ -82,6 +89,71 @@ class _AddWidgetState extends State<Add> {
                   }
                 },
               )),
+          Container(
+              width: 400,
+              height: 100,
+              margin: const EdgeInsets.fromLTRB(20, 5, 20, 5),
+              child:
+                  ListView(scrollDirection: Axis.horizontal, children: <Widget>[
+                Container(
+                    width: 120,
+                    height: 120,
+                    margin: const EdgeInsets.fromLTRB(0, 0, 50, 0),
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.all<Color>(Colors.white),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                              EdgeInsets.all(15)),
+                          foregroundColor:
+                              MaterialStateProperty.all<Color>(Colors.white),
+                          shape:
+                              MaterialStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18.0),
+                                      side: BorderSide(
+                                          color: const Color(0xFF84cc16))))),
+                      onPressed: () {
+                        // Process data.
+                        try {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => UploadImage()),
+                          ).then((value) => setState(() {}));
+                        } catch (e) {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text("¡Ops! Error al subir imagen"),
+                              content: Text('${e}'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(ctx).pop();
+                                  },
+                                  child: Text('Ok'),
+                                )
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                      child: Center(
+                          child: Text('Subir Imagen',
+                              textAlign: TextAlign.center,
+                              style:
+                                  TextStyle(fontSize: 22, color: Colors.grey))),
+                    )),
+                Container(
+                    width: 100,
+                    child: Image(
+                      gaplessPlayback: true,
+                      width: 100,
+                      image: NetworkImage(global.img_url_temp),
+                    ))
+              ]),
+              decoration: BoxDecoration()),
           Container(
               width: 400,
               margin: EdgeInsets.all(10),
@@ -207,6 +279,8 @@ class _AddWidgetState extends State<Add> {
                           builder: (contex) => NavBar(),
                         ),
                       );
+                      global.img_url_temp =
+                          'https://firebasestorage.googleapis.com/v0/b/agroapp-5a42d.appspot.com/o/upload%20img.png?alt=media&token=efb79419-3deb-43db-972c-44f53d0ccf75';
                     } catch (e) {
                       showDialog(
                         context: context,

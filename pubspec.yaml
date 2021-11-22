@@ -33,6 +33,12 @@ dependencies:
   firebase_core:
   google_sign_in:
   cloud_firestore:
+  firebase_storage:
+  firebase_analytics:
+  image_picker:
+  path:
+  uuid:
+  flutter_share_me:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -64,6 +70,8 @@ flutter:
   assets:
      - assets/images/logo_agroapp.png
      - assets/images/logo_google.png
+     - assets/images/logo_facebook.png
+     - assets/images/logo_whatsapp.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
