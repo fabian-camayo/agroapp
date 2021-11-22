@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-
+import 'global.Dart' as global;
 import 'add.dart';
 import 'home.dart';
 import 'search.dart';
@@ -55,6 +55,8 @@ class _NavBarState extends State<NavBar> {
                   context,
                   MaterialPageRoute(builder: (context) => SignIn()),
                 );
+                global.img_url_temp =
+                    'https://firebasestorage.googleapis.com/v0/b/agroapp-5a42d.appspot.com/o/upload%20img.png?alt=media&token=efb79419-3deb-43db-972c-44f53d0ccf75';
               }
             },
           ) //IconButton

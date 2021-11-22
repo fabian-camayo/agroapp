@@ -3,10 +3,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:convert';
-
+import 'package:flutter_share_me/flutter_share_me.dart';
 import 'package:intl/intl.dart';
 import 'nav.dart';
 import 'signin.dart';
+import 'global.Dart' as global;
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -21,6 +22,7 @@ final CollectionReference _mainCollection = _firestore.collection('themes');
 
 class _HomeWidgetState extends State<Home> {
   final FirebaseAuth auth = FirebaseAuth.instance;
+  final FlutterShareMe flutterShareMe = FlutterShareMe();
   String inputData() {
     final User? user = auth.currentUser;
     return user!.uid;
@@ -57,16 +59,12 @@ class _HomeWidgetState extends State<Home> {
                   snapshot.data!.docs[index].data() as Map<String, dynamic>;
               String themeID = snapshot.data!.docs[index].id;
               String name = themeInfo['name'];
+              String url_img = themeInfo['url_img'];
               String content = themeInfo['content'];
               String like = themeInfo['likes'].length.toString();
-              print("likes");
-              return Ink(
-                decoration: BoxDecoration(
-                    color: const Color(0xFFe9ffc9),
-                    borderRadius: BorderRadius.circular(8.0)),
-                child: ListTile(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0)),
+              print("URL_IMG");
+              print(url_img);
+              return InkWell(
                   onTap: () {
                     showModalBottomSheet<void>(
                         isScrollControlled: true,
@@ -207,73 +205,164 @@ class _HomeWidgetState extends State<Home> {
                               ),
                             ));
                   },
-                  title: Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 20),
-                  ),
-                  subtitle: Text(
-                    content,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 15),
-                  ),
-                  trailing: TextButton.icon(
-                      onPressed: () async {
-                        try {
-                          print("entra al like");
-                          var status = true;
-                          var listlikes = themeInfo['likes'];
-                          print("status");
-                          print(status);
-                          if (listlikes.length == 0) {
-                            status = true;
-                          } else {
-                            for (var i = 0; i <= listlikes.length; i++) {
-                              print(listlikes[i]);
-                              if (listlikes[i] == inputData().toString()) {
-                                print("ya dio like");
-                                status = false;
-                                /**Navigator.of(context).push(
+                  child: ListView(
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      children: <Widget>[
+                        Container(
+                            width: 100,
+                            child: Image(
+                              gaplessPlayback: true,
+                              width: 100,
+                              image: NetworkImage(url_img),
+                            )),
+                        Ink(
+                          decoration: BoxDecoration(
+                              color: const Color(0xFFe9ffc9),
+                              borderRadius: BorderRadius.circular(8.0)),
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0)),
+                            title: Text(
+                              name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 20),
+                            ),
+                            subtitle: Text(
+                              content,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 15),
+                            ),
+                            trailing: Container(
+                                width: 100,
+                                //height: 50,
+                                child: ListView(
+                                    scrollDirection: Axis.horizontal,
+                                    children: <Widget>[
+                                      IconButton(
+                                        icon: new Icon(Icons.share),
+                                        onPressed: () {
+                                          showModalBottomSheet<void>(
+                                              isScrollControlled: true,
+                                              elevation: 5,
+                                              context: context,
+                                              builder: (context) => Padding(
+                                                    padding: EdgeInsets.all(15),
+                                                    child: ListView(
+                                                      //scrollDirection:
+                                                      //    Axis.vertical,
+                                                      shrinkWrap: true,
+
+                                                      children: <Widget>[
+                                                        /**  InkWell(
+                                                          onTap: () async {
+                                                            String? msg = name +
+                                                                ":\n " +
+                                                                content;
+                                                            String? url =
+                                                                'https://pub.dev/packages/flutter_share_me';
+
+                                                            print(
+                                                                "contenido del mensaje");
+                                                            print(msg);
+                                                            await flutterShareMe
+                                                                .shareToFacebook(
+                                                                    url: url,
+                                                                    msg: msg);
+                                                          },
+                                                          child: Image(
+                                                              image: AssetImage(
+                                                                  'assets/images/logo_facebook.png'),
+                                                              width: 50,
+                                                              height: 50),
+                                                        ),**/
+                                                        InkWell(
+                                                          onTap: () async {
+                                                            String? msg = name +
+                                                                ":\n " +
+                                                                content;
+                                                            print(
+                                                                "contenido del mensaje");
+                                                            print(msg);
+                                                            await flutterShareMe
+                                                                .shareToWhatsApp(
+                                                                    msg: msg);
+                                                          },
+                                                          child: Image(
+                                                              image: AssetImage(
+                                                                  'assets/images/logo_whatsapp.png'),
+                                                              width: 50,
+                                                              height: 50),
+                                                        )
+                                                      ],
+                                                    ),
+                                                  ));
+                                        },
+                                      ),
+                                      TextButton.icon(
+                                          onPressed: () async {
+                                            try {
+                                              print("entra al like");
+                                              var status = true;
+                                              var listlikes =
+                                                  themeInfo['likes'];
+                                              print("status");
+                                              print(status);
+                                              if (listlikes.length == 0) {
+                                                status = true;
+                                              } else {
+                                                for (var i = 0;
+                                                    i <= listlikes.length;
+                                                    i++) {
+                                                  print(listlikes[i]);
+                                                  if (listlikes[i] ==
+                                                      inputData().toString()) {
+                                                    print("ya dio like");
+                                                    status = false;
+                                                    /**Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (contex) => NavBar(),
                                   ),
                                 );**/
-                              }
-                            }
-                          }
-                          print("status");
-                          print(status);
+                                                  }
+                                                }
+                                              }
+                                              print("status");
+                                              print(status);
 
-                          if (status) {
-                            print("No ha dado like");
-                            listlikes.add(inputData());
-                            await _firestore
-                                .collection("themes")
-                                .doc(themeID)
-                                .update({
-                                  'likes': listlikes,
-                                })
-                                .then((documentReference) {})
-                                .catchError((e) {
-                                  print(e);
-                                });
-                            /**Navigator.of(context).push(
+                                              if (status) {
+                                                print("No ha dado like");
+                                                listlikes.add(inputData());
+                                                await _firestore
+                                                    .collection("themes")
+                                                    .doc(themeID)
+                                                    .update({
+                                                      'likes': listlikes,
+                                                    })
+                                                    .then(
+                                                        (documentReference) {})
+                                                    .catchError((e) {
+                                                      print(e);
+                                                    });
+                                                /**Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (contex) => NavBar(),
                               ),
                             );**/
-                          }
-                        } catch (e) {}
-                      },
-                      icon: Icon(Icons.favorite),
-                      label: Text(
-                        like,
-                        overflow: TextOverflow.ellipsis,
-                      )),
-                ),
-              );
+                                              }
+                                            } catch (e) {}
+                                          },
+                                          icon: Icon(Icons.favorite),
+                                          label: Text(
+                                            like,
+                                            overflow: TextOverflow.ellipsis,
+                                          ))
+                                    ])),
+                          ),
+                        )
+                      ]));
             },
           );
         }
